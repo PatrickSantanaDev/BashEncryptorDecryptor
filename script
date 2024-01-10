@@ -1,0 +1,54 @@
+#!/bin/bash
+
+echo "This is an advanced file encrypter/decrypter"
+echo "Please choose what you want to do"
+
+choice="Encrypt Decrypt Exit"
+PS3="Enter your choice (1 for Encrypt, 2 for Decrypt, 3 to Exit): "
+
+function encrypt_file {
+    echo "Encrypting $1..."
+    gpg -c $1
+    echo "$1 has been encrypted."
+    shred -u $1
+    echo "$1 original file securely deleted."
+}
+
+function decrypt_file {
+    echo "Decrypting $1..."
+    gpg -d $1 > "${1%.gpg}"
+    echo "$1 has been decrypted."
+}
+
+function process_files {
+    echo "Enter a directory to search for files:"
+    read directory
+    files=$(find $directory -type f)
+    if [ -z "$files" ]; then
+        echo "No files found in the directory."
+    else
+        echo "Select a file:"
+        select file in $files; do
+            if [ "$option" = "Encrypt" ]; then
+                encrypt_file $file
+            else
+                decrypt_file $file
+            fi
+            break
+        done
+    fi
+}
+
+select option in $choice; do
+    case $REPLY in
+        1|2)
+            process_files
+            ;;
+        3)
+            break
+            ;;
+        *)
+            echo "Invalid option. Please try again."
+            ;;
+    esac
+done
